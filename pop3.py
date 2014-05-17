@@ -5,15 +5,21 @@ class msglist:
     def __init__(self, str):
         lines = str.splitlines()
         self.num = len(lines)-2
-        lines.pop(0)
-        for i in lines:
-            self.size = []
+        self.size = []
+        for i in lines[1:-1]:
             self.size.append(i[2:])
 
 class msgheader:
     def __init__(self, str):
         lines = str.splitlines()
-        self.From = lines[1] + lines[2]
+
+def receive(sock, encoding = "UTF8"):
+    result = ""
+    while True:
+        buffer = sock.recv(512)
+        result += buffer.decode(encoding)
+        if result.endswith(".\r\n"): break
+    return result
 
 if __name__ == "__main__":
     server = "pop.mail.ru"
@@ -38,17 +44,17 @@ if __name__ == "__main__":
     ans = s.recv(512).decode()
     if debug: print(ans)
 
-    s.send(("STAT\n").encode())
-    ans = s.recv(512).decode()
+    s.send("LIST\n".encode())
+    ans = receive(s)
+    # ans += s.recv(512).decode()
     if debug: print(ans)
 
-    n = int(ans.split()[1])
+    ml = msglist(ans)
 
-    for i in range(1, n+1):
+    for i in range(1, ml.num+1):
         s.send(("TOP " + str(i) + " 0\n").encode())
-        ans = s.recv(1024).decode()
+        ans = receive(s)
         if debug: print(ans)
         mes = msgheader(ans)
-        if debug: print(ans)
 
     # s.send((input()+'\n').encode())
