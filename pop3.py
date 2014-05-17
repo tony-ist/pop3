@@ -22,22 +22,22 @@ class msglist:
             for i in self.lines:
                 if(i.lower().startswith(field)):
                     result = re.sub(r"=[?](.+?)[?][bB][?](.+?)[?]=", b64repl, i)
-                    result = re.sub(r"\r\n\s*", "", result)
+                    result = re.sub(r"\r\n\s{0,1}", "", result)
                     return result
             return "'" + field + "' information not found"
 
 def b64repl(match):
     encoding = match.group(1)
     code = match.group(2)
-    binary = base64.standard_b64decode(code)
-    result = binary.decode(encoding)
+    binary = base64.standard_b64decode(code.encode(encoding, 'replace'))
+    result = binary.decode(encoding, 'replace')
     return result
 
 def receive(sock, encoding = "koi8-r"):
     result = ""
     while True:
         buffer = sock.recv(512)
-        result += buffer.decode(encoding)
+        result += buffer.decode(encoding, 'replace')
         if result.endswith(".\r\n"): break
     return result
 
